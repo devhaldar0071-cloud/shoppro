@@ -692,6 +692,18 @@
     </div>
   </div>
 
+  <!-- PAYMENT CONFIRMATION SECURITY MODAL -->
+  <div class="modal-overlay" id="paymentVerifyModal">
+    <div class="modal-card">
+      <h3 style="color: #ff6600; margin-bottom: 8px;">⏳ Payment Verification</h3>
+      <p style="font-size: 13px; color: #444; margin-bottom: 14px; line-height: 1.4;">
+        Kya aapne UPI app me <b>haldar-s@fam</b> par ₹1 ka payment successfully complete kar liya hai?
+      </p>
+      <button class="modal-btn" style="background: #2ed573;" onclick="verifyPaymentSuccess()">Haan, Payment Ho Gayi</button>
+      <button class="modal-btn" style="background: #ff4757; margin-top: 8px;" onclick="closePaymentVerifyModal()">Abhi Nahi / Cancel</button>
+    </div>
+  </div>
+
   <!-- CUSTOM INTERACTIVE MODALS -->
   <div class="modal-overlay" id="genericModal">
     <div class="modal-card">
@@ -730,7 +742,7 @@
   <script>
     const MY_PERSONAL_PHONE = "+91 9876543210";
     const MY_PERSONAL_EMAIL = "support@shoppro.com";
-    const MY_PERSONAL_UPI   = "devhaldar11@ibl";
+    const MY_PERSONAL_UPI   = "haldar-s@fam"; // Updated UPI ID
 
     const myDailyProducts = [
       {
@@ -866,16 +878,36 @@
       let payUrl = `upi://pay?pa=${MY_PERSONAL_UPI}&pn=ShopProPrime&am=1.00&cu=INR&tn=ShopPro_Prime_Subscription`;
       window.location.href = payUrl;
 
+      document.getElementById('forcePrimeAdModal').style.display = 'none';
       setTimeout(() => {
-        let confirmPay = confirm("Kya aapne UPI app me ₹1 ka payment complete kar liya hai?");
-        if (confirmPay) {
-          isPrimeActive = true;
-          saveUserState();
-          syncUI();
-          document.getElementById('forcePrimeAdModal').style.display = 'none';
-          showGenericModal("👑 Prime Activated", "Congratulations! Prime access successfully unlocked.");
-        }
-      }, 2000);
+        document.getElementById('paymentVerifyModal').style.display = 'flex';
+      }, 1500);
+    }
+
+    function triggerAutoPay() {
+      if(!isUserLoggedIn) {
+        openAuthModal();
+        return;
+      }
+      let payUrl = `upi://pay?pa=${MY_PERSONAL_UPI}&pn=ShopProPrime&am=1.00&cu=INR&tn=ShopPro_Prime_Subscription`;
+      window.location.href = payUrl;
+
+      setTimeout(() => {
+        document.getElementById('paymentVerifyModal').style.display = 'flex';
+      }, 1500);
+    }
+
+    function closePaymentVerifyModal() {
+      document.getElementById('paymentVerifyModal').style.display = 'none';
+      showGenericModal("⚠️ Pending", "Payment confirm nahi hui hai, isliye Prime locked rahega!");
+    }
+
+    function verifyPaymentSuccess() {
+      document.getElementById('paymentVerifyModal').style.display = 'none';
+      isPrimeActive = true;
+      saveUserState();
+      syncUI();
+      showGenericModal("👑 Prime Activated", "Payment verified successfully! Enjoy your VIP features.");
     }
 
     function checkPrimeAndAction(title, action) {
@@ -993,7 +1025,7 @@
     function addToWishlistFromDetail() {
       let exists = wishlistItems.some(item => item.name === currentDetailProduct.name);
       if (exists) {
-        showGenericModal("❤️ Wishlist", "Yeh product pehle se Wishlist me hai!");
+        showGenericModal("❤️ Wishlist", "Yeh product pehle से Wishlist me hai!");
         return;
       }
       wishlistItems.push(currentDetailProduct);
@@ -1171,8 +1203,6 @@
       showGenericModal("📄 Terms", "Shop Pro Terms of Service Active.");
     }
 
-    function triggerAutoPay() { triggerAutoPayFromAd(); }
-
     function openLuckyDraw() {
       if (!isPrimeActive) {
         showGenericModal("⚠️ Prime Required", "Lucky Draw sirf Prime Members ke liye hai.");
@@ -1197,4 +1227,3 @@
   </script>
 </body>
 </html>
-
