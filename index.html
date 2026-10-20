@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="hi" id="htmlRoot">
 <head>
   <meta charset="UTF-8">
@@ -23,7 +23,6 @@
       overflow-x: hidden;
     }
 
-    /* 🟠 AMAZON-STYLE SPLASH SCREEN FOR SHOP PRO */
     #splash-screen {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -57,7 +56,6 @@
       100% { transform: scale(1); opacity: 1; }
     }
 
-    /* APP HEADER */
     .app-header {
       background: #ffffff;
       border-bottom: 2px solid #ff6600;
@@ -329,7 +327,7 @@
     }
     .video-box {
       background: #ffffff; border: 1px solid #ddd; border-radius: 8px;
-      overflow: hidden; margin-bottom: 12px;
+      overflow: hidden; margin-bottom: 12px; position: relative;
     }
     .video-frame { width: 100%; height: 180px; background: #000; border: none; }
     
@@ -347,7 +345,6 @@
     }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
 
-    /* FORCED PRIME AD POPUP */
     .force-prime-overlay {
       position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px);
@@ -435,7 +432,7 @@
     }
     .modal-input {
       width: 100%; background: #fafafa; border: 1px solid #ccc; color: #222;
-      padding: 10px; border-radius: 6px; margin: 10px 0; outline: none; font-size: 14px; text-align: center;
+      padding: 10px; border-radius: 6px; margin: 8px 0; outline: none; font-size: 14px; text-align: center;
     }
     .modal-btn {
       background: #ff6600; color: #fff; border: none; width: 100%;
@@ -458,17 +455,23 @@
     .nav-btn svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; }
     .nav-btn.active { color: #ff6600; }
     .nav-btn.active svg { stroke: #ff6600; }
+
+    .locked-blur {
+      filter: blur(5px);
+      pointer-events: none;
+      user-select: none;
+    }
   </style>
 </head>
 <body>
 
-  <!-- 🟠 SPLASH SCREEN (AMAZON-STYLE FOR SHOP PRO) -->
+  <!-- SPLASH SCREEN -->
   <div id="splash-screen">
     <div class="splash-logo">⚡ Shop Pro</div>
     <div class="splash-sub">Fast & Secure Shopping</div>
   </div>
 
-  <!-- ALWAYS FORCED PRIME AD POPUP -->
+  <!-- MANDATORY FORCED PRIME AD POPUP -->
   <div class="force-prime-overlay" id="forcePrimeAdModal" style="display:none;">
     <div class="force-prime-card">
       <div class="force-prime-title">1₹ Mein Prime Lena Hi Padega!</div>
@@ -494,7 +497,7 @@
         <div class="brand-title">⚡ Shop Pro</div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <button class="lang-toggle" onclick="toggleLanguage()" id="langBtn">English</button>
-          <button class="lang-toggle" onclick="openAuthModal()" id="authBtn" style="background: #ff6600; color: #fff;">🔑 Login / OTP</button>
+          <button class="lang-toggle" onclick="handleAuthBtnClick()" id="authBtn" style="background: #ff6600; color: #fff;">🔑 Login / Register</button>
         </div>
       </div>
       <div class="search-box" onclick="checkLoginAndSearch()">
@@ -547,13 +550,15 @@
           <button class="modal-btn" onclick="triggerAutoPay()">Activate Prime @ ₹1 / Day</button>
         </div>
 
-        <div class="section-title">🎬 Today's Special Daily Video</div>
-        <div class="video-box">
-          <iframe class="video-frame" id="dailyVideoFrame" src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
-        </div>
+        <div id="primeLockedArea" class="locked-blur">
+          <div class="section-title">🎬 Today's Special Daily Video</div>
+          <div class="video-box">
+            <iframe class="video-frame" id="dailyVideoFrame" src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+          </div>
 
-        <div class="section-title">🎮 VIP Mini Games</div>
-        <div class="game-grid" id="vipGamesGrid"></div>
+          <div class="section-title">🎮 VIP Mini Games</div>
+          <div class="game-grid" id="vipGamesGrid"></div>
+        </div>
       </div>
 
       <!-- ACCOUNT TAB -->
@@ -603,6 +608,7 @@
             <div class="acc-list-item" onclick="toggleLanguage()"><span>🌐 भाषा बदलें (Hindi/English)</span> <span>❯</span></div>
             <div class="acc-list-item" onclick="toggleNotifications()"><span>🔔 नोटीफिकेशन सेटिंग (<span id="notifStateText">ON</span>)</span> <span>❯</span></div>
             <div class="acc-list-item" onclick="switchTab('prime')"><span>👑 मेरे सब्सक्रिप्शन (Shop Pro Prime)</span> <span>❯</span></div>
+            <div class="acc-list-item" onclick="logoutUser()" style="color: red; font-weight: 700;"><span>🚪 Logout</span> <span>❯</span></div>
           </div>
         </div>
 
@@ -672,18 +678,17 @@
     </div>
   </div>
 
-  <!-- OTP / LOGIN MODAL -->
+  <!-- PASSWORD REGISTER / LOGIN MODAL -->
   <div class="modal-overlay" id="authModal">
     <div class="modal-card">
       <button class="close-modal" onclick="closeAuthModal()">&times;</button>
-      <h3 style="color: #ff6600; margin-bottom: 6px;">Login / Register (OTP)</h3>
-      <p style="font-size: 11px; color: #666; margin-bottom: 10px;">Enter proper 10-digit mobile number.</p>
-      <input type="tel" id="mobileInput" class="modal-input" placeholder="Enter 10-digit Mobile Number" maxlength="10">
-      <button class="modal-btn" onclick="sendOtp()">Send OTP</button>
-      <div id="otpSection" style="display:none; margin-top: 10px;">
-        <input type="text" id="otpInput" class="modal-input" placeholder="Enter OTP (1234)" maxlength="4">
-        <button class="modal-btn" onclick="verifyOtp()">Verify & Login</button>
-      </div>
+      <h3 style="color: #ff6600; margin-bottom: 6px;" id="authModalTitle">Login / Register</h3>
+      <p style="font-size: 11px; color: #666; margin-bottom: 10px;" id="authModalSub">Aapna 10-digit Mobile Number aur Password Daalein.</p>
+      
+      <input type="tel" id="mobileInput" class="modal-input" placeholder="Enter Mobile Number" maxlength="10">
+      <input type="password" id="passwordInput" class="modal-input" placeholder="Enter Password">
+      
+      <button class="modal-btn" onclick="handleAuthSubmit()">Login / Register</button>
     </div>
   </div>
 
@@ -723,12 +728,9 @@
   </nav>
 
   <script>
-    /* ==========================================================
-       🌟 TERA PERSONAL CONFIG & DAILY CONTENT 🌟
-       ========================================================== */
-    const MY_PERSONAL_PHONE = "+91 9876543210";          // Apna Phone/WhatsApp
-    const MY_PERSONAL_EMAIL = "support@shoppro.com";     // Apna Email ID
-    const MY_PERSONAL_UPI   = "devhaldar11@ibl";         // <-- Tera UPI ID Set Ho Gaya Hai!
+    const MY_PERSONAL_PHONE = "+91 9876543210";
+    const MY_PERSONAL_EMAIL = "support@shoppro.com";
+    const MY_PERSONAL_UPI   = "devhaldar11@ibl";
 
     const myDailyProducts = [
       {
@@ -764,18 +766,43 @@
       { title: "🃏 Card Match", action: "Launching Card Match..." }
     ];
 
-    /* ========================================================== */
-
     let cartItems = [];
     let wishlistItems = [];
     let ordersList = [];
     let currentDetailProduct = {};
-    let isUserLoggedIn = false;
-    let isPrimeActive = false;
-    let userPhoneNumber = "Mobile Number";
-    let userName = "User Account";
-    let savedAddress = "";
+
+    let isUserLoggedIn = localStorage.getItem('isUserLoggedIn') === 'true';
+    let isPrimeActive = localStorage.getItem('isPrimeActive') === 'true';
+    let userPhoneNumber = localStorage.getItem('userPhoneNumber') || "Mobile Number";
+    let userName = localStorage.getItem('userName') || "User Account";
+    let savedAddress = localStorage.getItem('savedAddress') || "";
     let notificationsEnabled = true;
+
+    function saveUserState() {
+      localStorage.setItem('isUserLoggedIn', isUserLoggedIn);
+      localStorage.setItem('isPrimeActive', isPrimeActive);
+      localStorage.setItem('userPhoneNumber', userPhoneNumber);
+      localStorage.setItem('userName', userName);
+      localStorage.setItem('savedAddress', savedAddress);
+    }
+
+    function syncUI() {
+      if (isUserLoggedIn) {
+        document.getElementById('authBtn').innerText = '👤 My Account';
+        document.getElementById('accDisplayTitle').innerText = 'Hey, ' + userName;
+        document.getElementById('accDisplayPhone').innerText = '+91 ' + userPhoneNumber;
+      } else {
+        document.getElementById('authBtn').innerText = '🔑 Login / Register';
+      }
+
+      if (isPrimeActive) {
+        document.getElementById('primeCardBox').innerHTML = `<h3 style="color: #ff6600;">✅ Prime Member Active</h3>`;
+        document.getElementById('luckyDrawBtn').style.display = 'block';
+        document.getElementById('primeLockedArea').classList.remove('locked-blur');
+      } else {
+        document.getElementById('primeLockedArea').classList.add('locked-blur');
+      }
+    }
 
     function renderProducts() {
       let gridHTML = "";
@@ -799,27 +826,25 @@
 
       let gamesHTML = "";
       myVipGames.forEach(g => {
-        gamesHTML += `<div class="game-card" onclick="showGenericModal('${g.title}', '${g.action}')">${g.title}</div>`;
+        gamesHTML += `<div class="game-card" onclick="checkPrimeAndAction('${g.title}', '${g.action}')">${g.title}</div>`;
       });
       document.getElementById('vipGamesGrid').innerHTML = gamesHTML;
     }
 
     window.onload = function() {
       renderProducts();
+      syncUI();
 
-      // 1. Splash Screen Animation
       setTimeout(() => {
         let splash = document.getElementById('splash-screen');
         splash.style.opacity = '0';
         splash.style.visibility = 'hidden';
 
-        // 2. Forced Prime Popup
         if (!isPrimeActive) {
           document.getElementById('forcePrimeAdModal').style.display = 'flex';
         }
-      }, 2000);
+      }, 1500);
 
-      // 3. Har 45 second me wapas Prime ka popup
       setInterval(() => {
         if (!isPrimeActive) {
           document.getElementById('forcePrimeAdModal').style.display = 'flex';
@@ -832,15 +857,33 @@
     }
 
     function triggerAutoPayFromAd() {
-      // Direct UPI AutoPay Intent with devhaldar11@ibl
-      let payUrl = `upi://pay?pa=${MY_PERSONAL_UPI}&pn=ShopProPrime&am=1&cu=INR&tn=ShopPro_Prime_AutoPay_Subscription`;
+      if(!isUserLoggedIn) {
+        document.getElementById('forcePrimeAdModal').style.display = 'none';
+        openAuthModal();
+        return;
+      }
+      
+      let payUrl = `upi://pay?pa=${MY_PERSONAL_UPI}&pn=ShopProPrime&am=1.00&cu=INR&tn=ShopPro_Prime_Subscription`;
       window.location.href = payUrl;
 
-      isPrimeActive = true;
-      document.getElementById('forcePrimeAdModal').style.display = 'none';
-      document.getElementById('primeCardBox').innerHTML = `<h3 style="color: #4cd137;">✅ Prime Member Active</h3>`;
-      document.getElementById('luckyDrawBtn').style.display = 'block';
-      showGenericModal("👑 Prime Active", "Aapka ₹1 AutoPay Mandate Redirect ho chuka hai!");
+      setTimeout(() => {
+        let confirmPay = confirm("Kya aapne UPI app me ₹1 ka payment complete kar liya hai?");
+        if (confirmPay) {
+          isPrimeActive = true;
+          saveUserState();
+          syncUI();
+          document.getElementById('forcePrimeAdModal').style.display = 'none';
+          showGenericModal("👑 Prime Activated", "Congratulations! Prime access successfully unlocked.");
+        }
+      }, 2000);
+    }
+
+    function checkPrimeAndAction(title, action) {
+      if (!isPrimeActive) {
+        showGenericModal("⚠️ Prime Locked", "Kripya ₹1 ka Prime plan activate karein.");
+        return;
+      }
+      showGenericModal(title, action);
     }
 
     function checkLoginAndOpen(index) {
@@ -866,6 +909,14 @@
     function checkLoginAndAction(actionFn) {
       if (!isUserLoggedIn) { openAuthModal(); return; }
       actionFn();
+    }
+
+    function handleAuthBtnClick() {
+      if (isUserLoggedIn) {
+        switchTab('account');
+      } else {
+        openAuthModal();
+      }
     }
 
     function switchTab(tabName) {
@@ -992,32 +1043,55 @@
     function openAuthModal() { document.getElementById('authModal').classList.add('active'); }
     function closeAuthModal() { document.getElementById('authModal').classList.remove('active'); }
     
-    function sendOtp() {
-      let phone = document.getElementById('mobileInput').value;
+    function handleAuthSubmit() {
+      let phone = document.getElementById('mobileInput').value.trim();
+      let pass = document.getElementById('passwordInput').value.trim();
       let phoneRegex = /^[6-9]\d{9}$/;
-      
-      if (!phoneRegex.test(phone) || /^(\d)\1{9}$/.test(phone)) {
-        showGenericModal("⚠️ Invalid Number", "Kripya ek valid Indian mobile number daalein!");
+
+      if (!phoneRegex.test(phone)) {
+        showGenericModal("⚠️ Invalid Number", "Kripya valid 10-digit mobile number daalein!");
         return;
       }
-      
-      userPhoneNumber = phone;
-      showGenericModal("📲 OTP Sent", "Testing OTP: <b>1234</b>");
-      document.getElementById('otpSection').style.display = 'block';
+
+      if (pass.length < 4) {
+        showGenericModal("⚠️ Password Short", "Password kam se kam 4 characters ka hona chahiye!");
+        return;
+      }
+
+      let savedUsers = JSON.parse(localStorage.getItem('registeredUsers') || '{}');
+
+      if (savedUsers[phone]) {
+        if (savedUsers[phone] === pass) {
+          isUserLoggedIn = true;
+          userPhoneNumber = phone;
+          saveUserState();
+          syncUI();
+          closeAuthModal();
+          showGenericModal("🎉 Login Success", "Welcome back to Shop Pro!");
+        } else {
+          showGenericModal("❌ Wrong Password", "Aapka password galat hai! Dubara try karein.");
+        }
+      } else {
+        savedUsers[phone] = pass;
+        localStorage.setItem('registeredUsers', JSON.stringify(savedUsers));
+
+        isUserLoggedIn = true;
+        userPhoneNumber = phone;
+        saveUserState();
+        syncUI();
+        closeAuthModal();
+        showGenericModal("🎉 Account Created", "Aapka account successfully register ho gaya!");
+      }
     }
 
-    function verifyOtp() {
-      let otp = document.getElementById('otpInput').value;
-      if (otp === '1234') {
-        isUserLoggedIn = true;
-        closeAuthModal();
-        document.getElementById('authBtn').innerText = '👤 My Account';
-        document.getElementById('accDisplayTitle').innerText = 'Hey, ' + userName;
-        document.getElementById('accDisplayPhone').innerText = '+91 ' + userPhoneNumber;
-        showGenericModal("🎉 Login Success", "Welcome to Shop Pro!");
-      } else {
-        showGenericModal("❌ Wrong OTP", "Sahi OTP darj karein (1234).");
-      }
+    function logoutUser() {
+      isUserLoggedIn = false;
+      isPrimeActive = false;
+      localStorage.removeItem('isUserLoggedIn');
+      localStorage.removeItem('isPrimeActive');
+      syncUI();
+      switchTab('home');
+      showGenericModal("🚪 Logged Out", "Aapka account logout ho gaya hai.");
     }
 
     function showGenericModal(title, content) {
@@ -1034,7 +1108,8 @@
       let newName = prompt("Apna Naya Naam Type Karein:", userName);
       if (newName && newName.trim() !== "") {
         userName = newName;
-        document.getElementById('accDisplayTitle').innerText = 'Hey, ' + userName;
+        saveUserState();
+        syncUI();
         showGenericModal("✅ Profile Updated", "Aapka naam <b>" + userName + "</b> save ho gaya.");
       }
     }
@@ -1043,6 +1118,7 @@
       let addr = prompt("Apna Address Likhien:", savedAddress);
       if (addr !== null && addr.trim() !== "") {
         savedAddress = addr;
+        saveUserState();
         document.getElementById('savedAddressText').innerText = "Saved";
         showGenericModal("📍 Address Saved", "Address update ho gaya hai.");
       }
@@ -1121,3 +1197,4 @@
   </script>
 </body>
 </html>
+
